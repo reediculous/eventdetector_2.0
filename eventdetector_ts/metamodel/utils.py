@@ -127,7 +127,9 @@ def validate_required_args(meta_model) -> None:
     elif not isinstance(meta_model.events, (list, pd.DataFrame)):
         raise InvalidArgumentError("Events should be a list or a Pandas DataFrame.")
 
-    if not re.match(r"^\w+$", meta_model.output_dir):
+    # Extract the final directory name (basename) from the path for validation
+    output_dir_basename = os.path.basename(meta_model.output_dir)
+    if not re.match(r"^\w+$", output_dir_basename):
         raise InvalidArgumentError(
             "Output directory name can only contain alphanumeric characters and underscores.")
 
