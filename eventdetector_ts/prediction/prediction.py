@@ -151,7 +151,7 @@ def load_meta_model(output_dir: str) -> Tuple[tf.keras.Model, Any]:
     return model, scaler
 
 
-def predict(dataset: pd.DataFrame, path: str) -> Tuple[List, np.ndarray, np.ndarray]:
+def predict(dataset: pd.DataFrame, path: str) -> Tuple[List, np.ndarray, np.ndarray, np.ndarray]:
     """
     Generates output predictions for the input dataset
     Args:
@@ -159,7 +159,7 @@ def predict(dataset: pd.DataFrame, path: str) -> Tuple[List, np.ndarray, np.ndar
         path (str): The path to the created folder by the MetaModel.
 
     Returns:
-        Tuple[List, np.ndarray, np.ndarray]: Predicted events, predicted Op and filtered predicted Op
+        Tuple[List, np.ndarray, np.ndarray, np.ndarray]: Predicted events, predicted Op, filtered predicted Op, and timestamps
     """
 
     if path is None or not isinstance(path, str) or len(path) == 0:
@@ -214,6 +214,9 @@ def predict(dataset: pd.DataFrame, path: str) -> Tuple[List, np.ndarray, np.ndar
     logger.info("Computing filtered predictions as a function of the mid-times of the overlapping partitions")
     t, filtered_predicted_op = compute_op_as_mid_times(overlapping_partitions=dataset_as_overlapping_partitions,
                                                        op_g=filtered_predicted_op)
+    # Also align predicted_op with timestamps for consistency
+    _, predicted_op = compute_op_as_mid_times(overlapping_partitions=dataset_as_overlapping_partitions,
+                                              op_g=predicted_op)
     logger.info(f"Computing peaks with h = {h:.2f}")
     s_peaks = get_peaks(h=h, t=t, op_g=filtered_predicted_op)
     predicted_events = []
@@ -225,4 +228,4 @@ def predict(dataset: pd.DataFrame, path: str) -> Tuple[List, np.ndarray, np.ndar
         start_time = predicted_event - radius
         end_time = predicted_event + radius
         predicted_events.append((start_time.isoformat(), end_time.isoformat()))
-    return predicted_events, predicted_op, filtered_predicted_op
+    return predicted_events, predicted_op, filtered_predicted_op, t
